@@ -1,9 +1,15 @@
 package com.medsavy.medsavyinventorymanagementservice.services;
 
+import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.INVENTORY_CREATED;
+import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.INVENTORY_CREATION_FAILURE;
+import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.MEDICINE_ADD_FAILURE;
+import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.MEDICINE_ADD_SUCCESS;
+
 import com.medsavy.medsavyinventorymanagementservice.dto.Medicine;
 import com.medsavy.medsavyinventorymanagementservice.entity.MedInventoryEntity;
 import com.medsavy.medsavyinventorymanagementservice.entity.UserEntity;
 import com.medsavy.medsavyinventorymanagementservice.entity.UserInventoryEntity;
+import com.medsavy.medsavyinventorymanagementservice.enums.Transaction;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedRequest;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.CreateInventoryResponse;
@@ -11,13 +17,16 @@ import com.medsavy.medsavyinventorymanagementservice.exchanges.GetMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.repository.InventoryRepository;
 import com.medsavy.medsavyinventorymanagementservice.repository.UserInventoryRepository;
 import com.medsavy.medsavyinventorymanagementservice.repository.UserRepository;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class InventoryManagementServiceImpl implements InventoryManagementService{
@@ -36,29 +45,63 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
   @Override
   public AddMedResponse addMedInInventory(AddMedRequest request) {
 
-    AddMedResponse response = null;
+    AddMedResponse response = new AddMedResponse();
     UserInventoryEntity userInventoryEntity = userInventoryRepository
         .findUserInventoryEntityByUserId(request.getUserId());
 
-    MedInventoryEntity medIVEntity = new MedInventoryEntity(
-        userInventoryEntity.getInventoryId(),
-        request.getName(),
-        request.getType(),
-        request.getPrice(),
-        request.getExpiryDate(),
-        request.getQuantity()
+    // Check medicine with same name , expiry date exist or not
+    // If exist than update the batch by increasing qty and setting the recent price
+    // else create a new batch with the med
+
+    MedInventoryEntity medIVEntity = insertOrUpdateMedIVEntity(
+        userInventoryEntity.getInventoryId(), request
     );
 
+
     inventoryRepository.save(medIVEntity);
+
     if(medIVEntity.getBatchId() != null) {
       response = modelMapper.map(medIVEntity, AddMedResponse.class);
-      response.setMessage("Medicine Added Successfully");
+      response.setMessage(MEDICINE_ADD_SUCCESS);
       return response;
     }
 
-    response = modelMapper.map(medIVEntity, AddMedResponse.class);
-    response.setMessage("Unable to add medicine");
+    response.setMessage(MEDICINE_ADD_FAILURE);
     return response;
+  }
+
+  private MedInventoryEntity insertOrUpdateMedIVEntity(Integer ivID, AddMedRequest request) {
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    String expDate = dateFormat.format(request.getExpiryDate());
+
+    MedInventoryEntity medIVEntity = inventoryRepository
+        .findMedInventoryEntityByNameAndAndExpiryDateAndInventoryId(
+            request.getName(), expDate, ivID);
+
+    if(medIVEntity != null) {
+      medIVEntity.increaseQuantity(request.getQuantity());
+      medIVEntity.updatePrice(request.getPrice());
+      log.info("inside [insertOrUpdateMedIVEntity] Updating existing medicine batch {} in "
+              + "inventory {}", medIVEntity.getBatchId(), ivID);
+
+      return inventoryRepository.save(medIVEntity);
+    }
+
+    // Constructing new medicine batch
+    log.info("inside [insertOrUpdateMedIVEntity] Constructing new medicine batch in inventory {}",
+        ivID);
+
+    medIVEntity = new MedInventoryEntity(
+        ivID,
+        request.getName(),
+        request.getType(),
+        request.getPrice(),
+        expDate,
+        request.getQuantity(),
+        Transaction.PURCHASE.name()
+    );
+
+    return medIVEntity;
   }
 
   @Override
@@ -71,14 +114,28 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
 
     if(optionalUserEntity.isPresent()) {
       userEntity = optionalUserEntity.get();
+      log.info("inside [createInventoryForUser] creating inventory for user {}",
+          userEntity.getUserName());
+
+      if(userInventoryRepository.existsByUserEntity(userEntity)) {
+        log.info("inside [createInventoryForUser] unable to create inventory for user {}"
+            + " inventory already exists", userEntity.getUserName());
+        response.setMessage(INVENTORY_CREATION_FAILURE);
+        return response;
+      }
+
       userInventoryEntity.setUserEntity(userEntity);
       userInventoryRepository.save(userInventoryEntity);
       response = modelMapper.map(userInventoryEntity, CreateInventoryResponse.class);
-      response.setMessage("Inventory created successfully");
+      response.setMessage(INVENTORY_CREATED);
       return response;
     }
 
-    response.setMessage("Inventory creation failed");
+    if(optionalUserEntity.isEmpty()) {
+      log.info("Unable to create inventory. No user found with id {}", userId);
+      response.setMessage(INVENTORY_CREATION_FAILURE);
+    }
+
     return response;
   }
 

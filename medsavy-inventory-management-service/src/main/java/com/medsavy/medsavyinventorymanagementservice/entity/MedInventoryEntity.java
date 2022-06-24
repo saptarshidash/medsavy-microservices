@@ -1,5 +1,6 @@
 package com.medsavy.medsavyinventorymanagementservice.entity;
 
+import com.medsavy.medsavyinventorymanagementservice.enums.Transaction;
 import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,12 +32,14 @@ public class MedInventoryEntity {
 
   private Double price;
 
-  private Date expiryDate;
+  private String expiryDate;
 
   private Integer quantity;
 
+  private String transaction;
+
   public MedInventoryEntity(Integer inventoryId, String name, String type, Double price,
-      Date expiryDate, Integer quantity) {
+      String expiryDate, Integer quantity, String transaction) {
 
     this.inventoryId = inventoryId;
     this.name = name;
@@ -44,5 +47,20 @@ public class MedInventoryEntity {
     this.price = price;
     this.expiryDate = expiryDate;
     this.quantity = quantity;
+    this.transaction = transaction;
+  }
+
+  public void increaseQuantity(Integer quantity) {
+    this.quantity = this.quantity + quantity;
+  }
+
+  public void decreaseQuantity(Integer quantity) {
+    if(this.quantity != 0 && this.quantity >= quantity) {
+      this.quantity = this.quantity - quantity;
+    }
+  }
+
+  public void updatePrice(Double price) {
+    this.price = price;
   }
 }

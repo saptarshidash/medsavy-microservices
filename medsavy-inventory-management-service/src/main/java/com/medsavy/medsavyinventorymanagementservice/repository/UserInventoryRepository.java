@@ -9,4 +9,6 @@ public interface UserInventoryRepository extends JpaRepository<UserInventoryEnti
 
   @Query(value = "SELECT u FROM UserInventoryEntity u WHERE u.userEntity.userId = ?1")
   UserInventoryEntity findUserInventoryEntityByUserId(Integer id);
+
+  Boolean existsByUserEntity(UserEntity userEntity);
 }
