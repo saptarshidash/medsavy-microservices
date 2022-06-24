@@ -5,6 +5,7 @@ import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConst
 import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.MEDICINE_ADD_FAILURE;
 import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.MEDICINE_ADD_SUCCESS;
 
+import com.medsavy.medsavyinventorymanagementservice.dto.Batch;
 import com.medsavy.medsavyinventorymanagementservice.dto.Medicine;
 import com.medsavy.medsavyinventorymanagementservice.entity.MedInventoryEntity;
 import com.medsavy.medsavyinventorymanagementservice.entity.UserEntity;
@@ -18,7 +19,10 @@ import com.medsavy.medsavyinventorymanagementservice.repository.InventoryReposit
 import com.medsavy.medsavyinventorymanagementservice.repository.UserInventoryRepository;
 import com.medsavy.medsavyinventorymanagementservice.repository.UserRepository;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -140,13 +144,11 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
   }
 
   @Override
-  public GetMedResponse getMedicinesByName(String searchString, Integer inventoryId) {
+  public GetMedResponse getMedicinesBySearchString(String searchString, Integer inventoryId) {
     List<MedInventoryEntity> medIVEntities = inventoryRepository
-        .findMedInventoryEntitiesByNameAndInventoryId(searchString, inventoryId);
+        .findMedInventoryEntitiesByInventoryIdAndSearchString(inventoryId, searchString);
 
-    List<Medicine> medicines = medIVEntities.stream()
-        .map(medIVEntity -> modelMapper.map(medIVEntity, Medicine.class))
-        .toList();
+    List<Medicine> medicines = structureMedicineList(medIVEntities);
 
     return new GetMedResponse(medicines);
   }
@@ -156,9 +158,35 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     List<MedInventoryEntity> medIVEntities = inventoryRepository
         .findMedInventoryEntitiesByInventoryId(inventoryId);
 
-    List<Medicine> medicineList = medIVEntities.stream()
-        .map(medIVEntity -> modelMapper.map(medIVEntity, Medicine.class))
-        .toList();
+    List<Medicine> medicineList = structureMedicineList(medIVEntities);
+
     return new GetMedResponse(medicineList);
+  }
+
+  /**
+   * Method structures medicines, like each med will have list of batches
+   * @param medIVEntities
+   * @return
+   */
+  private List<Medicine> structureMedicineList(List<MedInventoryEntity> medIVEntities) {
+    List<Medicine> medicineList = new ArrayList<>();
+    Map<String, Medicine> medicineBatch = new HashMap<>();
+
+    medIVEntities.forEach(medIVEntity -> {
+      Batch batch = new Batch(medIVEntity.getBatchId(), medIVEntity.getExpiryDate(),
+          medIVEntity.getQuantity(), medIVEntity.getPrice());
+      Medicine medicine = null;
+      if(!medicineBatch.containsKey(medIVEntity.getName())) {
+        medicine = new Medicine(medIVEntity.getName(), medIVEntity.getType());
+        medicine.addBatch(batch);
+        medicineBatch.put(medicine.getName(), medicine);
+        medicineList.add(medicine);
+      } else {
+        medicine = medicineBatch.get(medIVEntity.getName());
+        medicine.addBatch(batch);
+      }
+    });
+
+    return medicineList;
   }
 }

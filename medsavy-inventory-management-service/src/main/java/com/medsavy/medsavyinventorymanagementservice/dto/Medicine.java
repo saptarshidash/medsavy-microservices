@@ -1,6 +1,8 @@
 package com.medsavy.medsavyinventorymanagementservice.dto;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,15 +12,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Medicine {
 
-  private Integer batchId;
-
   private String name;
 
   private String type;
 
-  private Double price;
+  private List<Batch> batch = new ArrayList<>();
 
-  private Date expiryDate;
+  public Medicine(String name, String type) {
+    this.name = name;
+    this.type = type;
+  }
 
-  private Integer quantity;
+  public void addBatch(Batch b) {
+    batch.add(b);
+  }
 }

@@ -11,7 +11,7 @@ public interface InventoryManagementService {
 
   CreateInventoryResponse createInventoryForUser(Integer userId);
 
-  GetMedResponse getMedicinesByName(String searchString, Integer inventoryId);
+  GetMedResponse getMedicinesBySearchString(String searchString, Integer inventoryId);
 
   GetMedResponse getAllMedicinesByInventoryId(Integer inventoryId);
 }

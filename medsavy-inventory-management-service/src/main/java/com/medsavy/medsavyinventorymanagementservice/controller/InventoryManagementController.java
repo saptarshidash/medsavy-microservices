@@ -35,9 +35,9 @@ public class InventoryManagementController {
   }
 
   @GetMapping("/inventory/{inventoryId}/batch/medicines")
-  public GetMedResponse getMedicineBatchesByName(@PathVariable Integer inventoryId,
-      @RequestParam String name) {
-    return inventoryManagementService.getMedicinesByName(name, inventoryId);
+  public GetMedResponse getMedicineBatchesForSearchString(@PathVariable Integer inventoryId,
+      @RequestParam String searchString) {
+    return inventoryManagementService.getMedicinesBySearchString(searchString, inventoryId);
   }
 
   @GetMapping("/inventory/{inventoryId}/medicines")
