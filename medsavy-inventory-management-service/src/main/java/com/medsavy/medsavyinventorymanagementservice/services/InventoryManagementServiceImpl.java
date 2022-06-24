@@ -16,6 +16,7 @@ import com.medsavy.medsavyinventorymanagementservice.enums.Transaction;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedRequest;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.CreateInventoryResponse;
+import com.medsavy.medsavyinventorymanagementservice.exchanges.DeleteMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.GetMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.GetSalesResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.IVUpdateRequest;
@@ -238,6 +239,29 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     }
 
     return salesResponse;
+  }
+
+  @Override
+  public DeleteMedResponse deleteMedByBatchId(Integer batchId, Integer quantity) {
+    MedInventoryEntity medIVEntity = inventoryRepository.findMedInventoryEntityByBatchId(batchId);
+
+    Boolean isDecreased = medIVEntity.decreaseQuantity(quantity);
+    DeleteMedResponse response = new DeleteMedResponse();
+
+
+    if(isDecreased) {
+      inventoryRepository.save(medIVEntity);
+      response.setBatchId(batchId);
+      response.setQuantity(quantity);
+      response.setMedName(medIVEntity.getName());
+      response.setMessage("Medicines deleted successfully");
+      return response;
+    }
+
+    response.setMessage("Unable to delete medicines, requested quantity must be smaller than"
+        + "available quantity");
+
+    return response;
   }
 
   private void createSalesReport(Integer inventoryId, String medName, Integer customerId,

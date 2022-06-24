@@ -20,5 +20,7 @@ public interface InventoryRepository extends JpaRepository<MedInventoryEntity, I
       String expDate,
       Integer inventoryId);
 
+  MedInventoryEntity findMedInventoryEntityByBatchId(Integer batchId);
+
 
 }

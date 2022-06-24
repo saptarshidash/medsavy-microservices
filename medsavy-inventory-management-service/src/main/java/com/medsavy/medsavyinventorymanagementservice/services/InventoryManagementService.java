@@ -3,6 +3,7 @@ package com.medsavy.medsavyinventorymanagementservice.services;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedRequest;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.CreateInventoryResponse;
+import com.medsavy.medsavyinventorymanagementservice.exchanges.DeleteMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.GetMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.GetSalesResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.IVUpdateRequest;
@@ -21,4 +22,6 @@ public interface InventoryManagementService {
   IVUpdateResponse updateMedInInventoryAfterSell(Integer inventoryId, IVUpdateRequest updateRequest);
 
   GetSalesResponse getSalesDataBySalesId(Integer salesId);
+
+  DeleteMedResponse deleteMedByBatchId(Integer batchId, Integer quantity);
 }

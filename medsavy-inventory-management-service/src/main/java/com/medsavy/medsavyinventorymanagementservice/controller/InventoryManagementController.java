@@ -4,6 +4,8 @@ import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedRequest;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.CreateInventoryRequest;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.CreateInventoryResponse;
+import com.medsavy.medsavyinventorymanagementservice.exchanges.DeleteMedRequest;
+import com.medsavy.medsavyinventorymanagementservice.exchanges.DeleteMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.GetMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.GetSalesResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.IVUpdateRequest;
@@ -12,6 +14,7 @@ import com.medsavy.medsavyinventorymanagementservice.services.InventoryManagemen
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,10 +59,16 @@ public class InventoryManagementController {
     return inventoryManagementService.updateMedInInventoryAfterSell(inventoryId, updateRequest);
   }
 
-  @GetMapping("inventory/sales/{salesId}")
+  @GetMapping("/inventory/sales/{salesId}")
   public GetSalesResponse getSalesBySalesID(@PathVariable
       Integer salesId) {
     return inventoryManagementService.getSalesDataBySalesId(salesId);
+  }
+
+  @DeleteMapping("/inventory/batch/{batchId}/medicines")
+  public DeleteMedResponse removeMedByBatchId(@PathVariable Integer batchId, @RequestBody
+      DeleteMedRequest request) {
+    return inventoryManagementService.deleteMedByBatchId(batchId, request.getQuantity());
   }
 
 }

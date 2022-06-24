@@ -54,10 +54,12 @@ public class MedInventoryEntity {
     this.quantity = this.quantity + quantity;
   }
 
-  public void decreaseQuantity(Integer quantity) {
+  public Boolean decreaseQuantity(Integer quantity) {
     if(this.quantity != 0 && this.quantity >= quantity) {
       this.quantity = this.quantity - quantity;
+      return true;
     }
+    return false;
   }
 
   public void updatePrice(Double price) {
