@@ -16,11 +16,16 @@ public class Medicine {
 
   private String type;
 
+  private Double price;
+
+  private int totalQty;
+
   private List<Batch> batch = new ArrayList<>();
 
-  public Medicine(String name, String type) {
+  public Medicine(String name, String type, Double price) {
     this.name = name;
     this.type = type;
+    this.price = price;
   }
 
   public void addBatch(Batch b) {

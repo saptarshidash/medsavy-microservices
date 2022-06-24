@@ -1,6 +1,5 @@
-package com.medsavy.medsavyinventorymanagementservice.dto;
+package com.medsavy.medsavyinventorymanagementservice.exchanges;
 
-import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Batch {
+public class IVUpdateRequest {
 
-  private Integer batchId;
-  private String expiryDate;
+  private String medName;
   private Integer quantity;
+  private Integer customerId;
 }
