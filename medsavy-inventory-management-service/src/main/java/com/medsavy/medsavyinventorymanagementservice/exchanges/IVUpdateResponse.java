@@ -19,6 +19,10 @@ public class IVUpdateResponse {
 
   private Integer batchesUpdated;
 
+  private String message;
+
+  private Boolean success;
+
   public IVUpdateResponse(String medName, Integer inventoryId, Integer updatedQuantity,
       Integer batchesUpdated) {
     this.medName = medName;
@@ -27,5 +31,5 @@ public class IVUpdateResponse {
     this.batchesUpdated = batchesUpdated;
   }
 
-  private String message;
+
 }

@@ -16,4 +16,5 @@ public class CreateInventoryResponse {
 
   private Integer inventoryId;
   private String message;
+  private Boolean success;
 }

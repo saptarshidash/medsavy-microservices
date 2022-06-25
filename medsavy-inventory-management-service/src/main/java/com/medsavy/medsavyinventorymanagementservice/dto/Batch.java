@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 public class Batch {
 
   private Integer batchId;
+  private Integer inventoryId;
   private String expiryDate;
   private Integer quantity;
 }

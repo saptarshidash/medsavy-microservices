@@ -1,7 +1,5 @@
 package com.medsavy.medsavyinventorymanagementservice.entity;
 
-import com.medsavy.medsavyinventorymanagementservice.enums.Transaction;
-import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MedInventoryEntity {
+public class MedIVEntity {
 
 
 
@@ -38,7 +36,7 @@ public class MedInventoryEntity {
 
   private String transaction;
 
-  public MedInventoryEntity(Integer inventoryId, String name, String type, Double price,
+  public MedIVEntity(Integer inventoryId, String name, String type, Double price,
       String expiryDate, Integer quantity, String transaction) {
 
     this.inventoryId = inventoryId;

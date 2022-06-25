@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInventoryEntity {
+public class UserIVEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)

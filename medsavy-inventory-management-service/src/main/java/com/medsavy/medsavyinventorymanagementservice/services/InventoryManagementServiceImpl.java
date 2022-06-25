@@ -6,18 +6,16 @@ import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConst
 import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.MEDICINE_ADD_FAILURE;
 import static com.medsavy.medsavyinventorymanagementservice.utils.InventoryConstants.MEDICINE_ADD_SUCCESS;
 
-import com.medsavy.medsavyinventorymanagementservice.dto.Batch;
-import com.medsavy.medsavyinventorymanagementservice.dto.Medicine;
-import com.medsavy.medsavyinventorymanagementservice.entity.MedInventoryEntity;
+import antlr.StringUtils;
+import com.medsavy.medsavyinventorymanagementservice.entity.MedIVEntity;
 import com.medsavy.medsavyinventorymanagementservice.entity.SalesEntity;
 import com.medsavy.medsavyinventorymanagementservice.entity.UserEntity;
-import com.medsavy.medsavyinventorymanagementservice.entity.UserInventoryEntity;
+import com.medsavy.medsavyinventorymanagementservice.entity.UserIVEntity;
 import com.medsavy.medsavyinventorymanagementservice.enums.Transaction;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedRequest;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.AddMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.CreateInventoryResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.DeleteMedResponse;
-import com.medsavy.medsavyinventorymanagementservice.exchanges.GetMedResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.GetSalesResponse;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.IVUpdateRequest;
 import com.medsavy.medsavyinventorymanagementservice.exchanges.IVUpdateResponse;
@@ -28,9 +26,7 @@ import com.medsavy.medsavyinventorymanagementservice.repository.UserRepository;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
@@ -61,14 +57,14 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
   public AddMedResponse addMedInInventory(AddMedRequest request) {
 
     AddMedResponse response = new AddMedResponse();
-    UserInventoryEntity userInventoryEntity = userInventoryRepository
+    UserIVEntity userInventoryEntity = userInventoryRepository
         .findUserInventoryEntityByUserId(request.getUserId());
 
     // Check medicine with same name , expiry date exist or not
     // If exist than update the batch by increasing qty and setting the recent price
     // else create a new batch with the med
 
-    MedInventoryEntity medIVEntity = insertOrUpdateMedIVEntity(
+    MedIVEntity medIVEntity = insertOrUpdateMedIVEntity(
         userInventoryEntity.getInventoryId(), request
     );
 
@@ -78,18 +74,20 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     if(medIVEntity.getBatchId() != null) {
       response = modelMapper.map(medIVEntity, AddMedResponse.class);
       response.setMessage(MEDICINE_ADD_SUCCESS);
+      response.setSuccess(true);
       return response;
     }
 
     response.setMessage(MEDICINE_ADD_FAILURE);
+    response.setSuccess(false);
     return response;
   }
 
-  private MedInventoryEntity insertOrUpdateMedIVEntity(Integer ivID, AddMedRequest request) {
+  private MedIVEntity insertOrUpdateMedIVEntity(Integer ivID, AddMedRequest request) {
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     String expDate = dateFormat.format(request.getExpiryDate());
 
-    MedInventoryEntity medIVEntity = inventoryRepository
+    MedIVEntity medIVEntity = inventoryRepository
         .findMedInventoryEntityByNameAndAndExpiryDateAndInventoryId(
             request.getName(), expDate, ivID);
 
@@ -106,7 +104,7 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     log.info("inside [insertOrUpdateMedIVEntity] Constructing new medicine batch in inventory {}",
         ivID);
 
-    medIVEntity = new MedInventoryEntity(
+    medIVEntity = new MedIVEntity(
         ivID,
         request.getName(),
         request.getType(),
@@ -124,7 +122,7 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
 
     UserEntity userEntity = null;
     CreateInventoryResponse response = new CreateInventoryResponse();
-    UserInventoryEntity userInventoryEntity = new UserInventoryEntity();
+    UserIVEntity userInventoryEntity = new UserIVEntity();
     Optional<UserEntity> optionalUserEntity = userRepository.findById(userId);
 
     if(optionalUserEntity.isPresent()) {
@@ -135,7 +133,8 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
       if(userInventoryRepository.existsByUserEntity(userEntity)) {
         log.info("inside [createInventoryForUser] unable to create inventory for user {}"
             + " inventory already exists", userEntity.getUserName());
-        response.setMessage(INVENTORY_CREATION_FAILURE);
+        response.setMessage(INVENTORY_CREATION_FAILURE+", Inventory already exists");
+        response.setSuccess(false);
         return response;
       }
 
@@ -143,50 +142,42 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
       userInventoryRepository.save(userInventoryEntity);
       response = modelMapper.map(userInventoryEntity, CreateInventoryResponse.class);
       response.setMessage(INVENTORY_CREATED);
+      response.setSuccess(true);
       return response;
     }
 
     if(optionalUserEntity.isEmpty()) {
       log.info("Unable to create inventory. No user found with id {}", userId);
-      response.setMessage(INVENTORY_CREATION_FAILURE);
+      response.setMessage(INVENTORY_CREATION_FAILURE+", No user found");
+      response.setSuccess(false);
     }
 
     return response;
   }
 
   @Override
-  public GetMedResponse getMedicinesBySearchString(String searchString, Integer inventoryId) {
-    List<MedInventoryEntity> medIVEntities = inventoryRepository
-        .findMedInventoryEntitiesByInventoryIdAndSearchString(inventoryId, searchString);
-
-    List<Medicine> medicines = structureMedicineList(medIVEntities);
-
-    return new GetMedResponse(medicines);
-  }
-
-  @Override
-  public GetMedResponse getAllMedicinesByInventoryId(Integer inventoryId) {
-    List<MedInventoryEntity> medIVEntities = inventoryRepository
-        .findMedInventoryEntitiesByInventoryId(inventoryId);
-
-    List<Medicine> medicineList = structureMedicineList(medIVEntities);
-
-    return new GetMedResponse(medicineList);
-  }
-
-  @Override
   public IVUpdateResponse updateMedInInventoryAfterSell(Integer inventoryId, IVUpdateRequest updateRequest) {
 
     IVUpdateResponse updateResponse = new IVUpdateResponse();
-    List<MedInventoryEntity> medIVEntities = inventoryRepository
+    List<MedIVEntity> medIVEntities = inventoryRepository
         .findMedInventoryEntitiesByInventoryIdAndSearchString(
             inventoryId,
             updateRequest.getMedName()
         );
 
-    medIVEntities.sort(new Comparator<MedInventoryEntity>() {
+    if(medIVEntities.isEmpty()) {
+      updateResponse.setMedName(updateRequest.getMedName());
+      updateResponse.setInventoryId(inventoryId);
+      updateResponse.setMessage(String.format("%s not found in inventory. Try others",
+          updateRequest.getMedName()
+      ));
+      updateResponse.setSuccess(false);
+      return updateResponse;
+    }
+
+    medIVEntities.sort(new Comparator<MedIVEntity>() {
       @Override
-      public int compare(MedInventoryEntity o1, MedInventoryEntity o2) {
+      public int compare(MedIVEntity o1, MedIVEntity o2) {
         return o2.getQuantity() - o1.getQuantity();
       }
     });
@@ -195,7 +186,7 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     Integer totalQty = getTotalQtyForSingleMedIVEntity(medIVEntities);
 
     int requiredQty = updateRequest.getQuantity();
-    List<MedInventoryEntity> possibleUpdatedEntities = new ArrayList<>();
+    List<MedIVEntity> possibleUpdatedEntities = new ArrayList<>();
     if(requiredQty <= totalQty) {
      possibleUpdatedEntities = updateMedIVEntitiesQuantity(
          medIVEntities, totalQty, requiredQty
@@ -207,7 +198,7 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
      updateResponse = new IVUpdateResponse(updateRequest.getMedName(), inventoryId,
          updatedQuantity, batchesUpdated);
      updateResponse.setMessage("Inventory Updated successfully");
-
+     updateResponse.setSuccess(true);
      Integer sellerId = userInventoryRepository.findById(inventoryId)
          .get()
          .getUserEntity()
@@ -224,6 +215,7 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     updateResponse.setMedName(updateRequest.getMedName());
     updateResponse.setInventoryId(updateResponse.getInventoryId());
     updateResponse.setMessage("Update failed due to insufficient quantity");
+    updateResponse.setSuccess(false);
 
     return updateResponse;
   }
@@ -243,7 +235,7 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
 
   @Override
   public DeleteMedResponse deleteMedByBatchId(Integer batchId, Integer quantity) {
-    MedInventoryEntity medIVEntity = inventoryRepository.findMedInventoryEntityByBatchId(batchId);
+    MedIVEntity medIVEntity = inventoryRepository.findMedInventoryEntityByBatchId(batchId);
 
     Boolean isDecreased = medIVEntity.decreaseQuantity(quantity);
     DeleteMedResponse response = new DeleteMedResponse();
@@ -279,11 +271,11 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     salesRepository.save(salesEntity);
   }
 
-  private List<MedInventoryEntity> updateMedIVEntitiesQuantity(List<MedInventoryEntity> medIVEntities, int totalQty,
+  private List<MedIVEntity> updateMedIVEntitiesQuantity(List<MedIVEntity> medIVEntities, int totalQty,
       int requiredQty) {
-    List<MedInventoryEntity> toBeUpdatedMedIVEntities = new ArrayList<>();
+    List<MedIVEntity> toBeUpdatedMedIVEntities = new ArrayList<>();
 
-    for (MedInventoryEntity medIVEntity : medIVEntities) {
+    for (MedIVEntity medIVEntity : medIVEntities) {
       if (requiredQty != 0 && requiredQty <= medIVEntity.getQuantity()) {
         medIVEntity.decreaseQuantity(requiredQty);
         toBeUpdatedMedIVEntities.add(medIVEntity);
@@ -299,39 +291,10 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     return toBeUpdatedMedIVEntities;
   }
 
-  private Integer getTotalQtyForSingleMedIVEntity(List<MedInventoryEntity> medIVEntities) {
+  private Integer getTotalQtyForSingleMedIVEntity(List<MedIVEntity> medIVEntities) {
     AtomicReference<Integer> total = new AtomicReference<>(0);
     medIVEntities.forEach(medIVEntity -> total.updateAndGet(v -> v + medIVEntity.getQuantity()));
     return total.get();
   }
 
-  /**
-   * Method structures medicines, like each med will have list of batches
-   * @param medIVEntities
-   * @return
-   */
-  private List<Medicine> structureMedicineList(List<MedInventoryEntity> medIVEntities) {
-    List<Medicine> medicineList = new ArrayList<>();
-    Map<String, Medicine> medicineBatch = new HashMap<>();
-
-    medIVEntities.forEach(medIVEntity -> {
-      Batch batch = new Batch(medIVEntity.getBatchId(), medIVEntity.getExpiryDate(),
-          medIVEntity.getQuantity());
-      Medicine medicine = null;
-      if(!medicineBatch.containsKey(medIVEntity.getName())) {
-        medicine = new Medicine(medIVEntity.getName(), medIVEntity.getType(), medIVEntity.getPrice());
-        medicine.addBatch(batch);
-        medicine.setTotalQty(batch.getQuantity());
-        medicineBatch.put(medicine.getName(), medicine);
-        medicineList.add(medicine);
-      } else {
-        medicine = medicineBatch.get(medIVEntity.getName());
-        medicine.addBatch(batch);
-        medicine.setTotalQty(medicine.getTotalQty() + batch.getQuantity());
-      }
-    });
-
-
-    return medicineList;
-  }
 }
