@@ -1,5 +1,7 @@
 package com.medsavy.medsavyuserservice.Controller;
 
+import com.medsavy.medsavyuserservice.Entity.UserEntity;
+import com.medsavy.medsavyuserservice.config.JwtUtil;
 import com.medsavy.medsavyuserservice.exchanges.AddCartRequest;
 import com.medsavy.medsavyuserservice.exchanges.AddCartResponse;
 import com.medsavy.medsavyuserservice.exchanges.DeleteCartRequest;
@@ -11,11 +13,16 @@ import com.medsavy.medsavyuserservice.exchanges.TakeSubscriptionResponse;
 import com.medsavy.medsavyuserservice.exchanges.UserLoginRequest;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationRequest;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationResponse;
+import com.medsavy.medsavyuserservice.repository.UserRepository;
 import com.medsavy.medsavyuserservice.services.MyUserDetailService;
 import com.medsavy.medsavyuserservice.services.UserService;
 import com.medsavy.medsavyuserservice.services.UserServiceImpl;
 import com.netflix.discovery.converters.Auto;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,14 +41,40 @@ public class UserServiceController {
   @Autowired
   private MyUserDetailService userDetailService;
 
+
+  @Autowired
+  private JwtUtil jwtUtil;
+
   @PostMapping("/register")
   public UserRegistrationResponse registerUser(@RequestBody UserRegistrationRequest request) {
     return userDetailService.createUser(request);
   }
 
   @PostMapping("/login")
-  public LoginResponse loginUser(@RequestBody UserLoginRequest loginRequest) {
-    return null;
+  public ResponseEntity<LoginResponse> loginUser(@RequestBody UserLoginRequest loginRequest) throws Exception {
+
+    LoginResponse loginResponse = new LoginResponse();
+    // generate token
+    UserEntity user = userDetailService.loadUserByUsername(loginRequest.getUsername());
+
+    // auth user
+    if(user == null || !user.getPassword().equals(loginRequest.getPassword())) {
+      loginResponse.setMessage("Username or password is incorrect");
+      loginResponse.setSuccess(false);
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginResponse);
+    }
+
+    String token = jwtUtil.generateToken(user);
+
+    return ResponseEntity.ok(new LoginResponse(token, user.getUsername(), user.getRoles(),
+        "Login successful", true
+    ));
+  }
+
+  @GetMapping("/customer/role")
+  public ResponseEntity<?> getUserRoleDetails(@RequestParam String username) {
+    UserEntity userEntity = userDetailService.loadUserByUsername(username);
+    return ResponseEntity.ok(userEntity);
   }
 
   @PostMapping("/customer/cart")

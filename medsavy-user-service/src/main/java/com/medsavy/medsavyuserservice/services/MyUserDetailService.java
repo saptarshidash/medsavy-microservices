@@ -4,11 +4,12 @@ import com.medsavy.medsavyuserservice.Entity.UserEntity;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationRequest;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationResponse;
 import com.medsavy.medsavyuserservice.repository.UserRepository;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MyUserDetailService  {
+public class MyUserDetailService {
 
 
   @Autowired
@@ -49,4 +50,13 @@ public class MyUserDetailService  {
     return response;
   }
 
+  public UserEntity loadUserByUsername(String username) {
+    Optional<UserEntity> user = userRepository.findByUsername(username);
+
+    if(user.isPresent()) {
+      return user.get();
+    }
+
+    return null;
+  }
 }
