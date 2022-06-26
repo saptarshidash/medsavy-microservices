@@ -1,0 +1,314 @@
+{
+	"info": {
+		"_postman_id": "c097b5d1-26c8-41e4-b794-012813570c91",
+		"name": "MedSavy APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18546278"
+	},
+	"item": [
+		{
+			"name": "Inventory Management APIs",
+			"item": [
+				{
+					"name": "Customer",
+					"item": [
+						{
+							"name": "Get medicine batches by search string only",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Get All medicines",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Add item to cart",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"customerId\": 1,\n  \"inventoryId\": 14,\n  \"medName\": \"Clonotril 0.25\",\n  \"quantity\": 6,\n  \"totalPrice\": 78\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8083/api/v1/customer/cart",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"api",
+										"v1",
+										"customer",
+										"cart"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get cart items",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Place order",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"customerId\":1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8082/api/v1/customer/order",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8082",
+									"path": [
+										"api",
+										"v1",
+										"customer",
+										"order"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "subscribe to med",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"medName\": \"Pantacid IT\",\n  \"quantity\": 4,\n  \"customerId\": 1,\n  \"remindAfterMonth\": 2\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8083/api/v1/customer/subscription",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"api",
+										"v1",
+										"customer",
+										"subscription"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Get medicines by search string and inventory",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/api/v1/inventory/5/batch/medicines?searchString=clo",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"api",
+										"v1",
+										"inventory",
+										"5",
+										"batch",
+										"medicines"
+									],
+									"query": [
+										{
+											"key": "searchString",
+											"value": "clo"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Creates or updates medicine batches",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\":\"PANTACID\",\n    \"type\": \"ANTACID\",\n    \"price\": 12.20,\n    \"expiryDate\":\"2022-06-23\",\n    \"quantity\":14,\n    \"userId\":2\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/api/v1/inventory/medicine",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"api",
+										"v1",
+										"inventory",
+										"medicine"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get all medicines by inventory id",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Get sales data by sales id",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Delete med by batch id and quantity",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "get all orders by inventory",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "Get all order by inventory and date",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Creates an inventory for an user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\":1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/v1/inventory",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"inventory"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Inventory after sell",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"medName\":\"Pantacid IT\",\n    \"quantity\":4,\n    \"customerId\":2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/v1/inventory/13/medicine/batches",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"inventory",
+								"13",
+								"medicine",
+								"batches"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register user in system",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

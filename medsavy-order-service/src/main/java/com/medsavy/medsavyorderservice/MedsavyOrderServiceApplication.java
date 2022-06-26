@@ -1,6 +1,5 @@
-package com.medsavy.medsavyinventorymanagementservice;
+package com.medsavy.medsavyorderservice;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -10,16 +9,15 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 @EnableEurekaClient
-public class MedsavyInventoryManagementServiceApplication {
+public class MedsavyOrderServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MedsavyInventoryManagementServiceApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(MedsavyOrderServiceApplication.class, args);
+  }
 
-	@Bean
-	public ModelMapper modelMapper() {
-		return new ModelMapper();
-	}
-
+  @Bean
+  public RestTemplate restTemplate() {
+    return new RestTemplate();
+  }
 
 }
