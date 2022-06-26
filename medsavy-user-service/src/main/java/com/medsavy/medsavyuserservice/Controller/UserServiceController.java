@@ -5,8 +5,10 @@ import com.medsavy.medsavyuserservice.exchanges.AddCartResponse;
 import com.medsavy.medsavyuserservice.exchanges.DeleteCartRequest;
 import com.medsavy.medsavyuserservice.exchanges.DeleteCartResponse;
 import com.medsavy.medsavyuserservice.exchanges.GetCartResponse;
+import com.medsavy.medsavyuserservice.exchanges.LoginResponse;
 import com.medsavy.medsavyuserservice.exchanges.TakeSubscriptionReq;
 import com.medsavy.medsavyuserservice.exchanges.TakeSubscriptionResponse;
+import com.medsavy.medsavyuserservice.exchanges.UserLoginRequest;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationRequest;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationResponse;
 import com.medsavy.medsavyuserservice.services.MyUserDetailService;
@@ -35,6 +37,11 @@ public class UserServiceController {
   @PostMapping("/register")
   public UserRegistrationResponse registerUser(@RequestBody UserRegistrationRequest request) {
     return userDetailService.createUser(request);
+  }
+
+  @PostMapping("/login")
+  public LoginResponse loginUser(@RequestBody UserLoginRequest loginRequest) {
+    return null;
   }
 
   @PostMapping("/customer/cart")

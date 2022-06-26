@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MyUserDetailService {
+public class MyUserDetailService  {
 
 
   @Autowired
@@ -48,4 +48,5 @@ public class MyUserDetailService {
     response.setMessage("Registration failed");
     return response;
   }
+
 }
