@@ -59,37 +59,38 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     AddMedResponse response = new AddMedResponse();
     UserIVEntity userInventoryEntity = userInventoryRepository
         .findUserInventoryEntityByUserId(request.getUserId());
+    // FIXME : Debug inventory not found for user even though it exist
+    if(userInventoryEntity == null) {
+      response.setMessage("Inventory Not Found for userID "+request.getUserId());
+      response.setSuccess(false);
+      return response;
+    }
 
     // Check medicine with same name , expiry date exist or not
     // If exist than update the batch by increasing qty and setting the recent price
     // else create a new batch with the med
 
-    MedIVEntity medIVEntity = insertOrUpdateMedIVEntity(
+
+    AddMedResponse addMedResponse = insertOrUpdateMedIVEntity(
         userInventoryEntity.getInventoryId(), request
     );
 
-
-    inventoryRepository.save(medIVEntity);
-
-    if(medIVEntity.getBatchId() != null) {
-      response = modelMapper.map(medIVEntity, AddMedResponse.class);
-      response.setMessage(MEDICINE_ADD_SUCCESS);
-      response.setSuccess(true);
-      return response;
-    }
-
-    response.setMessage(MEDICINE_ADD_FAILURE);
-    response.setSuccess(false);
-    return response;
+    return addMedResponse;
   }
 
-  private MedIVEntity insertOrUpdateMedIVEntity(Integer ivID, AddMedRequest request) {
+  private AddMedResponse insertOrUpdateMedIVEntity(Integer ivID, AddMedRequest request) {
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     String expDate = dateFormat.format(request.getExpiryDate());
-
+    AddMedResponse response = new AddMedResponse();
     MedIVEntity medIVEntity = inventoryRepository
         .findMedInventoryEntityByNameAndAndExpiryDateAndInventoryId(
             request.getName(), expDate, ivID);
+
+    if(medIVEntity == null) {
+      response.setSuccess(false);
+      response.setMessage("Inventory not found for user");
+      return response;
+    }
 
     if(medIVEntity != null) {
       medIVEntity.increaseQuantity(request.getQuantity());
@@ -97,24 +98,34 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
       log.info("inside [insertOrUpdateMedIVEntity] Updating existing medicine batch {} in "
               + "inventory {}", medIVEntity.getBatchId(), ivID);
 
-      return inventoryRepository.save(medIVEntity);
+       inventoryRepository.save(medIVEntity);
+
+       response =  modelMapper.map(medIVEntity, AddMedResponse.class);
+       response.setMessage("Medicine batch updated");
+       response.setSuccess(true);
+       return response;
     }
 
     // Constructing new medicine batch
     log.info("inside [insertOrUpdateMedIVEntity] Constructing new medicine batch in inventory {}",
         ivID);
 
-    medIVEntity = new MedIVEntity(
-        ivID,
-        request.getName(),
-        request.getType(),
-        request.getPrice(),
-        expDate,
-        request.getQuantity(),
-        Transaction.PURCHASE.name()
-    );
 
-    return medIVEntity;
+    medIVEntity = MedIVEntity.builder().name(request.getName())
+        .type(request.getType())
+        .price(request.getPrice())
+        .expiryDate(expDate)
+        .quantity(request.getQuantity())
+        .transaction(Transaction.PURCHASE.name())
+        .build();
+
+    inventoryRepository.save(medIVEntity);
+
+    response = modelMapper.map(medIVEntity, AddMedResponse.class);
+    response.setMessage("Medicine batch added");
+    response.setSuccess(true);
+
+    return response;
   }
 
   @Override
@@ -128,11 +139,11 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
     if(optionalUserEntity.isPresent()) {
       userEntity = optionalUserEntity.get();
       log.info("inside [createInventoryForUser] creating inventory for user {}",
-          userEntity.getUserName());
+          userEntity.getUsername());
 
       if(userInventoryRepository.existsByUserEntity(userEntity)) {
         log.info("inside [createInventoryForUser] unable to create inventory for user {}"
-            + " inventory already exists", userEntity.getUserName());
+            + " inventory already exists", userEntity.getUsername());
         response.setMessage(INVENTORY_CREATION_FAILURE+", Inventory already exists");
         response.setSuccess(false);
         return response;
@@ -202,7 +213,7 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
      Integer sellerId = userInventoryRepository.findById(inventoryId)
          .get()
          .getUserEntity()
-         .getUserId();
+         .getId();
 
      createSalesReport(inventoryId,
          updateRequest.getMedName(),

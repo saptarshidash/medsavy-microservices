@@ -24,6 +24,6 @@ public class UserIVEntity {
   private Integer inventoryId;
 
   @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "userId")
+  @JoinColumn(name = "id")
   private UserEntity userEntity;
 }

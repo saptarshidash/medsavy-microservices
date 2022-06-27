@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserInventoryRepository extends JpaRepository<UserIVEntity, Integer> {
 
-  @Query(value = "SELECT u FROM UserIVEntity u WHERE u.userEntity.userId = ?1")
+  @Query(value = "SELECT u FROM UserIVEntity u WHERE u.userEntity.id = ?1")
   UserIVEntity findUserInventoryEntityByUserId(Integer id);
 
   Boolean existsByUserEntity(UserEntity userEntity);

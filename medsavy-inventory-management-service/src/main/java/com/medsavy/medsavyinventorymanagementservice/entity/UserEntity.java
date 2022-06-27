@@ -15,12 +15,11 @@ public class UserEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name = "userId")
-  private Integer userId;
+  private Integer id;
 
-  private String userName;
+  private String username;
 
-  private String userRole;
+  private String roles;
 
-  private String userPassword;
+  private String password;
 }
