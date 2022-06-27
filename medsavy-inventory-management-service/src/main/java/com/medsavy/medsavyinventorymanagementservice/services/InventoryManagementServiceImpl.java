@@ -86,12 +86,6 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
         .findMedInventoryEntityByNameAndAndExpiryDateAndInventoryId(
             request.getName(), expDate, ivID);
 
-    if(medIVEntity == null) {
-      response.setSuccess(false);
-      response.setMessage("Inventory not found for user");
-      return response;
-    }
-
     if(medIVEntity != null) {
       medIVEntity.increaseQuantity(request.getQuantity());
       medIVEntity.updatePrice(request.getPrice());
@@ -111,12 +105,14 @@ public class InventoryManagementServiceImpl implements InventoryManagementServic
         ivID);
 
 
-    medIVEntity = MedIVEntity.builder().name(request.getName())
+    medIVEntity = MedIVEntity.builder()
+        .name(request.getName())
         .type(request.getType())
         .price(request.getPrice())
         .expiryDate(expDate)
         .quantity(request.getQuantity())
         .transaction(Transaction.PURCHASE.name())
+        .inventoryId(ivID)
         .build();
 
     inventoryRepository.save(medIVEntity);

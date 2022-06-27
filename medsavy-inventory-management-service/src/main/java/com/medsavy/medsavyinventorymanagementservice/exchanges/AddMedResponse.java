@@ -18,7 +18,10 @@ public class AddMedResponse {
 
   private Integer inventoryId;
 
+  private Integer quantity;
+
   private String message;
+
 
   private Boolean success;
 }

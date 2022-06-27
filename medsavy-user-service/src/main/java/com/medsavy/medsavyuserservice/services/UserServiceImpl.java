@@ -2,6 +2,7 @@ package com.medsavy.medsavyuserservice.services;
 
 import com.medsavy.medsavyuserservice.Entity.CartItemEntity;
 import com.medsavy.medsavyuserservice.Entity.SubscriptionEntity;
+import com.medsavy.medsavyuserservice.Entity.UserEntity;
 import com.medsavy.medsavyuserservice.dtos.CartItem;
 import com.medsavy.medsavyuserservice.exchanges.AddCartRequest;
 import com.medsavy.medsavyuserservice.exchanges.AddCartResponse;
@@ -11,9 +12,10 @@ import com.medsavy.medsavyuserservice.exchanges.TakeSubscriptionReq;
 import com.medsavy.medsavyuserservice.exchanges.TakeSubscriptionResponse;
 import com.medsavy.medsavyuserservice.repository.CartRepository;
 import com.medsavy.medsavyuserservice.repository.SubscriptionRepository;
+import com.medsavy.medsavyuserservice.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.List;
-import net.bytebuddy.asm.Advice.Local;
+import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,11 +29,22 @@ public class UserServiceImpl implements UserService{
   @Autowired
   private SubscriptionRepository subscriptionRepository;
 
+  @Autowired
+  private UserRepository userRepository;
+
   private ModelMapper mapper = new ModelMapper();
 
   @Override
   public AddCartResponse addMedIntoCart(AddCartRequest request) {
     AddCartResponse cartResponse = new AddCartResponse();
+
+    Optional<UserEntity> userEntity = userRepository.findById(request.getCustomerId());
+
+    if(userEntity == null || userEntity.isEmpty()) {
+      cartResponse.setMessage("Unable to add to cart. User not found");
+      cartResponse.setSuccess(false);
+      return cartResponse;
+    }
     CartItemEntity cartEntity = CartItemEntity.builder().inventoryId(request.getInventoryId())
             .medName(request.getMedName())
                 .customerId(request.getCustomerId())

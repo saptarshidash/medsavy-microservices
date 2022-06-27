@@ -1,5 +1,6 @@
 package com.medsavy.medsavyuserservice.Controller;
 
+import com.medsavy.medsavyuserservice.Entity.JwtEntity;
 import com.medsavy.medsavyuserservice.Entity.UserEntity;
 import com.medsavy.medsavyuserservice.config.JwtUtil;
 import com.medsavy.medsavyuserservice.exchanges.AddCartRequest;
@@ -13,6 +14,7 @@ import com.medsavy.medsavyuserservice.exchanges.TakeSubscriptionResponse;
 import com.medsavy.medsavyuserservice.exchanges.UserLoginRequest;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationRequest;
 import com.medsavy.medsavyuserservice.exchanges.UserRegistrationResponse;
+import com.medsavy.medsavyuserservice.repository.AuthRepository;
 import com.medsavy.medsavyuserservice.repository.UserRepository;
 import com.medsavy.medsavyuserservice.services.MyUserDetailService;
 import com.medsavy.medsavyuserservice.services.UserService;
@@ -41,6 +43,9 @@ public class UserServiceController {
   @Autowired
   private MyUserDetailService userDetailService;
 
+  @Autowired
+  private AuthRepository authRepository;
+
 
   @Autowired
   private JwtUtil jwtUtil;
@@ -65,6 +70,16 @@ public class UserServiceController {
     }
 
     String token = jwtUtil.generateToken(user);
+
+    JwtEntity jwtEntity = authRepository.findJwtEntityByUserId(user.getId());
+    if(jwtEntity == null){
+      authRepository.save(JwtEntity.builder().userId(user.getId()).token(token)
+          .username(user.getUsername()).build());
+    }else {
+      jwtEntity.setToken(token);
+      authRepository.save(jwtEntity);
+    }
+
 
     return ResponseEntity.ok(new LoginResponse(token, user.getUsername(), user.getRoles(),
         "Login successful", true
