@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class GatewayConfig {
 
   @Autowired
-  AuthenticationFilter filter;
+  AuthFilter filter;
 
   @Bean
   public RouteLocator routes(RouteLocatorBuilder builder) {

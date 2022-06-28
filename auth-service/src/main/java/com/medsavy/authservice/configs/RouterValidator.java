@@ -14,6 +14,7 @@ public class RouterValidator {
       "/api/v1/user/customer/role"
   );
 
+  
   public Predicate<ServerHttpRequest> isSecured =
       request -> openApiEndpoints
           .stream()
