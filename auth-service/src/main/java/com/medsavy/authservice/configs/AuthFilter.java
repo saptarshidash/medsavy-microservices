@@ -57,18 +57,16 @@ public class AuthFilter implements GatewayFilter {
         String userRole =(String) claims.get("role");
         List<String> user = headers.get("user");
         userDto = userDetailService.fetchUserData(user.get(0));
-        
+
 
       } catch (Exception e) {
         // e.printStackTrace();
         log.info("Logs:"+e.getMessage());
-        ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(HttpStatus.BAD_REQUEST);
-
-        return response.setComplete();
+//        ServerHttpResponse response = exchange.getResponse();
+//        response.setStatusCode(HttpStatus.UNAUTHORIZED);
+//
+//        return response.setComplete();
       }
-
-      exchange.getRequest().mutate().header("user", String.valueOf(userDto.getUsername())).build();
     }
 
     return chain.filter(exchange);
